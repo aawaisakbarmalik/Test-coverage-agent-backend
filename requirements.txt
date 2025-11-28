@@ -6,3 +6,5 @@ pytest
 python-multipart
 openai>=1.43.0
 requests>=2.32.3
+httpx==0.27.2
+typing_extensions==4.12.2
