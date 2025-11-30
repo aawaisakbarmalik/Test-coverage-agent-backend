@@ -6,6 +6,7 @@ from typing import Literal, Optional, Dict, Any
 from .worker import start_worker_sync, TASKS
 import uuid
 from datetime import datetime, timezone
+import os
 
 app = FastAPI(title="Test Coverage Agent Supervisor", version="1.0.0")
 
@@ -50,10 +51,26 @@ async def ingest(req: IngestRequest, background: BackgroundTasks) -> Dict[str, A
     TASKS[task_id] = {"status": "queued", "assignment": task_assignment, "result": None}
     background.add_task(start_worker_sync, task_id, req.model_dump())
     return task_assignment
+@app.get("/", include_in_schema=False)
+def root():
+    return {
+        "service": "test-coverage-agent",
+        "status": "ok",
+        "message": "Agent is up. Try GET /api/status",
+        "time": datetime.now(timezone.utc).isoformat()
+    }
 
-@app.get("/api/ingest")
-async def ingest_status():
-    return {"message": "Ingest endpoint is working", "status": "ready"}
+@app.get("/api/status", tags=["meta"])
+def api_status():
+    return {
+        "service": "test-coverage-agent",
+        "status": "ok",
+        "provider": (os.getenv("LLM_PROVIDER", "") or "disabled"),
+        "model": os.getenv("LLM_MODEL", ""),
+        "time": datetime.now(timezone.utc).isoformat()
+    }
+
+
 
 @app.get("/api/task/{task_id}")
 async def get_task(task_id: str) -> Dict[str, Any]:
