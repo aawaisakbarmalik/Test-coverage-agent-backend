@@ -51,6 +51,9 @@ async def ingest(req: IngestRequest, background: BackgroundTasks) -> Dict[str, A
     background.add_task(start_worker_sync, task_id, req.model_dump())
     return task_assignment
 
+@app.get("/api/ingest")
+async def ingest_status():
+    return {"message": "Ingest endpoint is working", "status": "ready"}
 
 @app.get("/api/task/{task_id}")
 async def get_task(task_id: str) -> Dict[str, Any]:
